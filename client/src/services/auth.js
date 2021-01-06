@@ -1,4 +1,3 @@
-import { useContext } from 'react'
 import api from './api'
 
 export async function signIn({ email, password }) {
@@ -9,5 +8,7 @@ export async function signIn({ email, password }) {
         return response.data
     }
 
-    throw new Error(response.data.error)
+    const { status, data: { error = 'N/A' } } = response
+
+    throw new Error(`[${ status }] ${ error }`)
 }

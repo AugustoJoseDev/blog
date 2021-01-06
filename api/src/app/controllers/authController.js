@@ -6,7 +6,6 @@ const mailer = require('../../services/mailer')
 const crypto = require('crypto')
 
 const User = require('../models/User')
-const Token = require('../models/Token')
 
 const router = express.Router()
 
@@ -16,54 +15,11 @@ function login(id) {
     })
 }
 
-router.post('/request_confirmation', async (req, res) => {
-
-    try {
-        const { email } = req.body
-
-        if (await User.exists({ email })) {
-            return res.status(400).json({ error: 'Email is already in use' })
-        }
-
-        const token = await Token.findOne({ email }) || new Token({ email })
-
-        try {
-            await token.validate()
-        } catch (err) {
-            return res.status(400).json({ error: `${ err }` })
-        }
-
-        await token.save()
-
-        const { accepted } = await mailer.sendMail({
-            from: 'no-reply@post.com',
-            to: email,
-            subject: 'Confirmaition email',
-            html: `<p>Complete o seu registro utilizando este token: <br/>Email: ${ email } <br/>Token: ${ token.token }</p><p>Esse token expira em 1 hora!</p>`
-        })
-
-        if (!accepted) {
-            return res.status(500).json({ error: 'Unable to send mail' })
-        }
-
-        return res.sendStatus(200)
-    } catch (err) {
-        console.warn(err)
-        return res.status(400).json({ error: 'Unexpected error occurred' })
-    }
-
-})
-
-
 router.post('/register', async (req, res) => {
     try {
 
-        const { token: confirmationToken, ...data } = req.body
+        const data = req.body
         const { email, username } = data
-
-        if (!await Token.exists({ email, token: confirmationToken })) {
-            return res.status(400).json({ error: 'Invalid token' })
-        }
 
         if (await User.exists({ email })) {
             return res.status(400).json({ error: 'Email is already in use' })
@@ -88,8 +44,6 @@ router.post('/register', async (req, res) => {
         }
 
         await user.save()
-
-        await Token.deleteOne({ token: confirmationToken })
 
         user.password = undefined
 

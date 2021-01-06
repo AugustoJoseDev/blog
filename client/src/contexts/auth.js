@@ -2,14 +2,14 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import api from '../services/api'
 import * as auth from '../services/auth'
 
-const AuthContext = createContext({ signed: false })
+const AuthContext = createContext({ signed: false, user: {}, signIn: ({ email, password }) => { }, signOut: () => { } })
 
 export default function AuthProvider({ children }) {
-    const { user, setUser } = useState(null)
+    const [ user, setUser ] = useState(null)
 
-    useEffect(() => {
-        const storageToken = localStorage.getItem('token', token)
-        const storageUser = localStorage.getItem('user', JSON.stringify(user))
+    useEffect(async () => {
+        const storageToken = localStorage.getItem('token')
+        const storageUser = localStorage.getItem('user')
 
         if (storageToken && storageUser) {
             api.defaults.headers.Authorization = `Bearer ${ storageToken }`
@@ -19,6 +19,7 @@ export default function AuthProvider({ children }) {
     }, [])
 
     async function signIn({ email, password }) {
+        console.log(email, password)
         try {
 
             const { user, token } = await auth.signIn({ email, password })
@@ -28,7 +29,7 @@ export default function AuthProvider({ children }) {
             localStorage.setItem('user', JSON.stringify(user))
             setUser(user)
         } catch (error) {
-            console.error(error)
+            console.error(`${ error }`)
         }
     }
 
