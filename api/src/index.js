@@ -1,6 +1,7 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
+const https = require('./https')
 const port = process.env.PORT || 5000
 
 const app = express()
@@ -16,6 +17,6 @@ app.use((req, res, next) => {
 
 require('./app/controllers')(app)
 
-app.listen(port, () => {
-    console.log(`Listenning on http://localhost:${ port }`)
+https(app).listen(port, () => {
+    console.log(`Listenning on https://localhost:${ port }`)
 })
